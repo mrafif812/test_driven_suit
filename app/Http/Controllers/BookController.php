@@ -10,7 +10,7 @@ class BookController extends Controller
     //
     public function validateData(Request $request)
     {
-        return $data = $request->validate([
+        return $request->validate([
             'title' => 'required',
             'author' => 'required',
         ]);
