@@ -10,19 +10,24 @@ use Tests\TestCase;
 class BookReservationTest extends TestCase
 {
     use RefreshDatabase;
-    public function testCreateBook(){
+    public function testCreateBook()
+    {
         $this->withoutExceptionHandling();
 
-        $response = $this->post('/books',[
+        $response = $this->post('/books', [
             'title' => 'A demo book',
             'author' => 'Test writer',
         ]);
 
-        $response->assertOk();
+        $book = Book::first();
+
         $this->assertCount(1, Book::all());
+
+        $response->assertRedirect('/books/'. $book->id);
     }
 
-    public function testTitleIsRequired(){
+    public function testTitleIsRequired()
+    {
 
         $response = $this->post('/books', [
             'title' => '',
@@ -32,7 +37,8 @@ class BookReservationTest extends TestCase
         $response->assertSessionHasErrors('title');
     }
 
-    public function testAuthorIsRequired(){
+    public function testAuthorIsRequired()
+    {
         $response = $this->post('/books', [
             'title' => 'Test Book',
             'author' => '',
@@ -41,8 +47,9 @@ class BookReservationTest extends TestCase
         $response->assertSessionHasErrors('author');
     }
 
-    public function testBookCanBeUpdated(){
-        $this->withoutExceptionHandling();
+    public function testBookCanBeUpdated()
+    {
+        // $this->withoutExceptionHandling();
 
         $this->post('/books', [
             'title' => 'demo',
@@ -51,7 +58,7 @@ class BookReservationTest extends TestCase
 
         $book = Book::first();
 
-        $this->patch('/books/'. $book->id,[
+        $response = $this->patch('/books/' . $book->id, [
             'title' => 'new demo',
             'author' => 'new demo author'
         ]);
@@ -59,6 +66,22 @@ class BookReservationTest extends TestCase
         $this->assertEquals('new demo', Book::first()->title);
         $this->assertEquals('new demo author', Book::first()->author);
 
+        $response->assertRedirect('/books/'. $book->id);
+    }
 
+    public function testBookCanBeDeleted()
+    {
+        // $this->withoutExceptionHandling();
+        $this->post('/books', [
+            'title' => 'New Book',
+            'author' => 'new Author'
+        ]);
+
+        $this->assertCount(1, Book::all());
+        $book = Book::first();
+        $response = $this->delete('/books/delete/'.$book->id);
+        $this->assertCount(0, Book::all());
+
+        $response->assertRedirect('/books');
     }
 }
